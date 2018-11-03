@@ -28,9 +28,10 @@ def handle_client(client):
     #Make sure that every client has a distinct peer
 
     if len(clients)>=3:
-        while 1:
-            target_client=random.choice(list(clients.values()))
-            if target_client not in list(match.keys()) or list(match.values()):
+    while 1:
+        target_client=random.choice(list(clients.values()))
+        if target_client!=client_id:
+            if target_client not in list(match.keys()) + list(match.values()):
                 match[client_id]=target_client
                 break
             else:
