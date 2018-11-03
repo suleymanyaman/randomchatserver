@@ -20,28 +20,34 @@ def handle_client(client):
         client_id=random.randint(0,100)
         if client_id not in list(clients.values()):
             clients[client]=client_id
+            status[client_id]="AVAILABLE"
             break
         else:
             continue
 
+    print(status)
 
     #Make sure that every client has a distinct peer
 
-    if len(clients)>=3:
-    while 1:
-        target_client=random.choice(list(clients.values()))
-        if target_client!=client_id:
-            if target_client not in list(match.keys()) + list(match.values()):
-                match[client_id]=target_client
-                break
+
+    request=client.recv(1024).decode()
+    if request=="SHUFFLE":
+        while 1:
+            target_client = random.choice(list(clients.values()))
+            if client_id!=target_client:
+                if status[target_client]=="AVAILABLE":
+                    match[client_id]=target_client
+                    status[client_id]="FULL"
+                    status[target_client]="FULL"
+                    break
             else:
                 continue
 
-
-
-
-    print(clients.values())
+    print(status)
     print(match)
+
+
+
 
     while True:
         msg=client.recv(1024)
@@ -59,6 +65,7 @@ def handle_client(client):
 
 
 clients={}
+status={}
 match={}
 
 
