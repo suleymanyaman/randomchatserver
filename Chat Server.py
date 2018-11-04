@@ -5,16 +5,12 @@ import random
 def accept_incoming_connections():
     while True:
         client, client_adress = SERVER.accept()
-        client.send("Your messages are secured by encryption. Choose a nickname for yourself.".encode())
+        client.send("Welcome to ANAN. Write 'SHUFFLE' to connect someone".encode())
         print("%s:%s has connected" % client_adress)
         Thread(target=handle_client, args=(client,)).start()
 
 
 def handle_client(client):
-    name = client.recv(1024).decode()
-    welcome = 'Welcome %s! If you ever want to quit, type {EXIT} to exit.' % name
-    client.send(bytes(welcome, "utf8"))
-
     #Make sure that every client has a distinct id
     while 1:
         client_id=random.randint(0,100)
@@ -30,8 +26,8 @@ def handle_client(client):
     #Make sure that every client has a distinct peer
 
 
-    request=client.recv(1024).decode()
-    if request=="SHUFFLE":
+    msg=client.recv(1024).decode()
+    if msg=="SHUFFLE":
         while 1:
             target_client = random.choice(list(clients.values()))
             if client_id!=target_client:
@@ -39,9 +35,12 @@ def handle_client(client):
                     match[client_id]=target_client
                     status[client_id]="FULL"
                     status[target_client]="FULL"
+                    client.send("You have been connected to someone!".encode())
+                    list(clients.keys())[list(clients.values()).index(target_client)].send("You have been connected to someone!".encode())
                     break
             else:
                 continue
+
 
     print(status)
     print(match)
@@ -49,16 +48,15 @@ def handle_client(client):
 
 
 
-    while True:
-        msg=client.recv(1024)
-        frm=clients[client]
-        try:
-            to=match[frm]
-        except KeyError:
-            to=list(match.keys())[list(match.values()).index(frm)]
 
-        to_client=list(clients.keys())[list(clients.values()).index(to)]
-        to_client.send(msg)
+    frm=clients[client]
+    try:
+        to=match[frm]
+    except KeyError:
+        to=list(match.keys())[list(match.values()).index(frm)]
+
+    to_client=list(clients.keys())[list(clients.values()).index(to)]
+    to_client.send(msg.encode())
 
 
 
