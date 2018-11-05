@@ -32,15 +32,16 @@ def handle_client(client):
         print(str(clients[client])+":"+msg)
         if msg == "SHUFFLE":
             target_client = random.choice(list(clients.values()))
-            print(target_client)
-            if client_id!=target_client:
-                if status[target_client]=="AVAILABLE":
-                    match[client_id]=target_client
-                    status[client_id]="FULL"
-                    status[target_client]="FULL"
-                    client.send("You have been connected to someone!".encode())
-                    list(clients.keys())[list(clients.values()).index(target_client)].send("You have been connected to someone!".encode())
-                   
+            if client_id!=target_client and status[target_client]=="AVAILABLE":
+                match[client_id] = target_client
+                status[client_id] = "FULL"
+                status[target_client] = "FULL"
+                client.send("You have been connected to someone!".encode())
+                list(clients.keys())[list(clients.values()).index(target_client)].send(
+                    "You have been connected to someone!".encode())
+
+
+
 
             else:
                 continue
