@@ -26,10 +26,13 @@ def handle_client(client):
     #Make sure that every client has a distinct peer
 
 
-    request=client.recv(1024).decode()
-    if request=="SHUFFLE":
-        while 1:
+
+    while 1:
+        msg = client.recv(1024).decode()
+        print(str(clients[client])+":"+msg)
+        if msg == "SHUFFLE":
             target_client = random.choice(list(clients.values()))
+            print(target_client)
             if client_id!=target_client:
                 if status[target_client]=="AVAILABLE":
                     match[client_id]=target_client
@@ -37,29 +40,22 @@ def handle_client(client):
                     status[target_client]="FULL"
                     client.send("You have been connected to someone!".encode())
                     list(clients.keys())[list(clients.values()).index(target_client)].send("You have been connected to someone!".encode())
-                    break
+                   
+
             else:
                 continue
 
-    print(status)
-    print(match)
 
 
+        else:
+            frm = clients[client]
+            try:
+                to = match[frm]
+            except KeyError:
+                to = list(match.keys())[list(match.values()).index(frm)]
 
-
-    while True:
-        msg=client.recv(1024)
-        frm=clients[client]
-        try:
-            to=match[frm]
-        except KeyError:
-            to=list(match.keys())[list(match.values()).index(frm)]
-
-        to_client=list(clients.keys())[list(clients.values()).index(to)]
-        to_client.send(msg)
-
-
-
+            to_client = list(clients.keys())[list(clients.values()).index(to)]
+            to_client.send(msg.encode())
 
 
 clients={}
