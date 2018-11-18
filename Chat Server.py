@@ -1,19 +1,31 @@
 import socket
 from threading import Thread
 import random
+from faker import Faker
+
+
+fake=Faker("en_US")
+
+
+def get_key(dict, value):
+    return list(dict.keys())[list(dict.values()).index(value)]
+
+
 
 def accept_incoming_connections():
     while True:
         client, client_adress = SERVER.accept()
-        client.send("Welcome to ANAN. Write 'SHUFFLE' to connect someone".encode())
+        client.send("Welcome to app. Write 'SHUFFLE' to connect someone".encode())
         print("%s:%s has connected" % client_adress)
         Thread(target=handle_client, args=(client,)).start()
 
 
+
 def handle_client(client):
     #Make sure that every client has a distinct id
+    global target_client
     while 1:
-        client_id=random.randint(0,100)
+        client_id=fake.name()
         if client_id not in list(clients.values()):
             clients[client]=client_id
             status[client_id]="AVAILABLE"
@@ -21,15 +33,15 @@ def handle_client(client):
         else:
             continue
 
-    print(status)
+    client.send("Your nickname is {}".format(client_id).encode())
+
+
 
     #Make sure that every client has a distinct peer
 
 
-
     while 1:
         msg = client.recv(1024).decode()
-        print(str(clients[client])+":"+msg)
         if msg == "SHUFFLE":
             target_client = random.choice(list(clients.values()))
             if client_id!=target_client and status[target_client]=="AVAILABLE":
@@ -37,15 +49,22 @@ def handle_client(client):
                 status[client_id] = "FULL"
                 status[target_client] = "FULL"
                 client.send("You have been connected to someone!".encode())
-                list(clients.keys())[list(clients.values()).index(target_client)].send(
+                get_key(clients,target_client).send(
                     "You have been connected to someone!".encode())
 
 
-
-
             else:
+                client.send("We couldn't find a match for you, try again".encode())
                 continue
 
+        elif msg == "QUIT":
+            client.send("Sorry to see you leaving :( ".encode())
+            client.close()
+            get_key(clients, target_client).send("Your partner has left the chat!".encode())
+            status[target_client] = "AVAILABLE"
+            del clients[client]
+            del status[client_id]
+            break
 
 
         else:
@@ -53,15 +72,17 @@ def handle_client(client):
             try:
                 to = match[frm]
             except KeyError:
-                to = list(match.keys())[list(match.values()).index(frm)]
+                to = get_key(match, frm)
 
-            to_client = list(clients.keys())[list(clients.values()).index(to)]
-            to_client.send(msg.encode())
+            to_client = get_key(clients, to)
+            to_client.send((client_id+":"+msg).encode())
 
 
 clients={}
 status={}
 match={}
+
+
 
 
 
