@@ -90,8 +90,8 @@ def handle_client(client):
 
 
             to_client = get_key(clients, to)
-            to_client.send((client_id+":"+msg).encode())
-            client.send(("Me"+":"+msg).encode())
+            to_client.send((client_id+":"+msg).encode("utf-8"))
+            client.send(("Me"+":"+msg).encode("utf-8))
 
 
 clients={}
