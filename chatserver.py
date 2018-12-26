@@ -15,7 +15,7 @@ def get_key(dict, value):
 def accept_incoming_connections():
     while True:
         client, client_adress = SERVER.accept()
-        client.send("Welcome to app. Write 'SHUFFLE' to connect someone".encode())
+        client.send("Welcome to app. Press 'SHUFFLE' to connect someone".encode())
         print("%s:%s has connected" % client_adress)
         Thread(target=handle_client, args=(client,)).start()
 
@@ -33,7 +33,7 @@ def handle_client(client):
         else:
             continue
 
-    client.send("Your nickname is {}".format(client_id).encode())
+    #client.send("Your nickname is {}".format(client_id).encode())
 
 
 
@@ -41,8 +41,23 @@ def handle_client(client):
 
 
     while 1:
+        print(len(clients))
         msg = client.recv(1024).decode()
-        if msg == "SHUFFLE":
+        print(msg)
+        if msg == "?pRG=gmxHD74cEm":
+            if client_id in list(match.keys())+list(match.values()):
+                try:
+                    del match[client_id]
+                    get_key(clients, target_client).send("Your partner has left the chat :(".encode())
+                    status[target_client]="AVAILABLE"
+
+
+
+                except KeyError:
+                    del match[get_key(match, client_id)]
+                    get_key(clients, target_client).send("Your partner has left the chat :(".encode())
+                    status[target_client] = "AVAILABLE"
+
             target_client = random.choice(list(clients.values()))
             if client_id!=target_client and status[target_client]=="AVAILABLE":
                 match[client_id] = target_client
@@ -57,8 +72,7 @@ def handle_client(client):
                 client.send("We couldn't find a match for you, try again".encode())
                 continue
 
-        elif msg == "QUIT":
-            client.send("Sorry to see you leaving :( ".encode())
+        elif msg == "4t7w!z%C":
             client.close()
             get_key(clients, target_client).send("Your partner has left the chat!".encode())
             status[target_client] = "AVAILABLE"
@@ -74,14 +88,15 @@ def handle_client(client):
             except KeyError:
                 to = get_key(match, frm)
 
+
             to_client = get_key(clients, to)
             to_client.send((client_id+":"+msg).encode())
+            client.send(("Me"+":"+msg).encode())
 
 
 clients={}
 status={}
 match={}
-
 
 
 
