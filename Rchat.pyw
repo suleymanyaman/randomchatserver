@@ -4,7 +4,7 @@ from threading import Thread
 import tkinter
 from tkinter import messagebox
 
-HOST=socket.gethostbyname(socket.gethostname())
+HOST="68.183.210.79"
 PORT=5000
 
 
