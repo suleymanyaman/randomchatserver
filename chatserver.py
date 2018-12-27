@@ -74,11 +74,14 @@ def handle_client(client):
 
         elif msg == "4t7w!z%C":
             client.close()
-            get_key(clients, target_client).send("Your partner has left the chat!".encode())
-            status[target_client] = "AVAILABLE"
-            del clients[client]
-            del status[client_id]
-            break
+            try:
+                get_key(clients, target_client).send("Your partner has left the chat!".encode())
+                status[target_client] = "AVAILABLE"
+            finally:
+                del clients[client]
+                del status[client_id]
+                print(len(clients))
+                break
 
 
         else:
@@ -91,7 +94,7 @@ def handle_client(client):
 
             to_client = get_key(clients, to)
             to_client.send((client_id+":"+msg).encode("utf-8"))
-            client.send(("Me"+":"+msg).encode("utf-8))
+            client.send(("Me"+":"+msg).encode("utf-8"))
 
 
 clients={}
@@ -114,3 +117,4 @@ if __name__== "__main__":
     print("Waiting for connection.....")
     ACCEPT_THREAD = Thread(target=accept_incoming_connections)
     ACCEPT_THREAD.start()
+
