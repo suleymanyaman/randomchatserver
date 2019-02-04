@@ -4,7 +4,8 @@ import random
 from faker import Faker
 
 
-fake=Faker("en_US")
+#fake=Faker("en_US")
+
 
 
 def get_key(dict, value):
@@ -15,7 +16,7 @@ def get_key(dict, value):
 def accept_incoming_connections():
     while True:
         client, client_adress = SERVER.accept()
-        client.send("Welcome to app. Press 'SHUFFLE' to connect someone".encode())
+        client.send("Welcome to Chit-Chat !. Press 'SHUFFLE' to connect someone".encode())
         print("%s:%s has connected" % client_adress)
         Thread(target=handle_client, args=(client,)).start()
 
@@ -25,9 +26,10 @@ def handle_client(client):
     #Make sure that every client has a distinct id
     global target_client
     while 1:
-        client_id=fake.name()
+        client_id = client.recv(1024).decode()
         if client_id not in list(clients.values()):
             clients[client]=client_id
+            print(client_id)
             status[client_id]="AVAILABLE"
             break
         else:
@@ -91,7 +93,7 @@ def handle_client(client):
             except KeyError:
                 to = get_key(match, frm)
 
-
+            
             to_client = get_key(clients, to)
             to_client.send((client_id+":"+msg).encode("utf-8"))
             client.send(("Me"+":"+msg).encode("utf-8"))
