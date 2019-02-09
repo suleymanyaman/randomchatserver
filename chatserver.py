@@ -16,7 +16,7 @@ def get_key(dict, value):
 def accept_incoming_connections():
     while True:
         client, client_adress = SERVER.accept()
-        client.send("Welcome to Chit-Chat !. Press 'SHUFFLE' to connect someone".encode())
+        client.send("Welcome to Chit-Chat ! {} people is online.".format(str(len(clients))).encode())
         print("%s:%s has connected" % client_adress)
         Thread(target=handle_client, args=(client,)).start()
 
@@ -43,7 +43,6 @@ def handle_client(client):
 
 
     while 1:
-        print(len(clients))
         msg = client.recv(1024).decode()
         print(msg)
         if msg == "?pRG=gmxHD74cEm":
@@ -119,4 +118,3 @@ if __name__== "__main__":
     print("Waiting for connection.....")
     ACCEPT_THREAD = Thread(target=accept_incoming_connections)
     ACCEPT_THREAD.start()
-
