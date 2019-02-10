@@ -1,98 +1,145 @@
-import tkinter
-from tkinter import messagebox
-import socket
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 import sys
+import MySQLdb
+import socket
+from playsound import playsound
 from threading import Thread
-import tkinter
-from tkinter import messagebox
+import functools
 
-
+app = QApplication(sys.argv)
+app.setWindowIcon(QIcon("icon.ico"))
+s = socket.socket()
+HOST=socket.gethostbyname(socket.gethostname())
+PORT=5000
 connection_status = "OFFLINE "
 
+#Frame 3
 
-def gantihal(frame):
-    frame.tkraise()
+register_frame = QFrame()
+register_frame.setWindowTitle("Chit-Chat v1.0.")
+register_box=QFormLayout(register_frame)
+nickname = QLineEdit(register_frame)
+nick_label=QLabel("Nickname:")
+email= QLineEdit(register_frame)
+email_label=QLabel("E-mail:")
+age = QComboBox(register_frame)
+age_label=QLabel("Age:")
+password=QLineEdit(register_frame)
+password.setEchoMode(QLineEdit.Password)
+password_label = QLabel("Password:")
+register_button=QPushButton("Register now")
+return_button=QPushButton("Return to the main page")
 
-root = tkinter.Tk()
-root.title("Chit-Chat")
-root.geometry("300x300")
+for a in range(18,100):
+    age.addItem(str(a))
 
-
-f1 = tkinter.Frame(root)
-f2 = tkinter.Frame(root)
-
-
-for frame in (f1, f2):
-    frame.grid(row=0, column=0, sticky='news')
-
- #Frame 1
-
-nickname_label= tkinter.Label(f1, text="Nickname:")
-nickname_label.pack()
-nickname_label.place(x=50, y=100)
-
-nickname_area = tkinter.Entry(f1)
-nickname_area.pack()
-nickname_area.place(x=115, y=100)
-
-password_label = tkinter.Label(f1, text="Password:")
-password_label.pack()
-password_label.place(x=50, y=140)
-
-password_area = tkinter.Entry(f1, show="*")
-password_area.pack()
-password_area.place(x=115, y=140)
+male  = QRadioButton("Male")
+female = QRadioButton("Female")
 
 
+def open_reg():
+    window.close()
+    register_frame.show()
 
+def open_main():
+    register_frame.close()
+    window.show()
 
-s = socket.socket()
-
-def auth_login(event=None):
-    global password_area
-    global connection_status
-    username = nickname_area.get()
-    pswd = password_area.get()
-    if username == "admin" and pswd == "1234567":
-        try:
-            s.connect((HOST, PORT))
-            connection_status = "ONLINE"
-            s.send(username.encode("utf-8"))
-            gantihal(f2)
-            #messagebox._show("Rchat v1.0.", "Welcome to RChat !")
-        except ConnectionRefusedError:
-            messagebox.showerror("Server Error", "The server is not connected.")
-
-    else:
-        messagebox.showerror("Wrong credentials", "Either nickname or password is wrong. Please try again.")
-
-    return username
+return_button.clicked.connect(open_main)
 
 
 
-login_button = tkinter. Button(f1, text="Log In" , command= lambda: auth_login(), height=2, width=10)
-login_button.pack()
-login_button.place(x=115, y=170)
+def age_return():
+    return age.currentText()
+
+age.activated.connect(age_return)
+
+register_box.addRow(nick_label,nickname)
+register_box.addRow(email_label,email)
+register_box.addRow(age_label,age)
+register_box.addRow(male, female)
+register_box.addRow(password_label, password)
+register_box.addRow(register_button)
+register_box.addRow(return_button)
 
 
+def send_to_database():
+    gender=""
+    if male.isChecked():
+        gender+="M"
+    if female.isChecked():
+        gender+="F"
+
+
+    db = MySQLdb.connect(host="45.63.101.196", user="suleyman_yaman", passwd="19971234", db="suleyman_chitchat")
+    conn = db.cursor()
+    conn.execute("INSERT INTO chatmembers VALUES (%s,%s,%s,%s,%s)", (nickname.text(), password.text(), email.text(), age_return(),gender ))
+    db.commit()
+    msg  = QMessageBox()
+    msg.setWindowTitle("Chit-Chat v1.0.")
+    msg.setText("Congratulations! You have registered, now you can login.")
+    msg.exec()
+
+
+
+register_button.clicked.connect(send_to_database)
 
 # Frame 2
 
-
-HOST=socket.gethostbyname(socket.gethostname())
-PORT=5000
-
-messages_frame = tkinter.Frame(f2)
-my_msg = tkinter.StringVar()
-my_msg.set("Type your messages here")
-scrollbar = tkinter.Scrollbar(messages_frame)
-msg_list = tkinter.Listbox(messages_frame, height=37, width=200, yscrollcommand=scrollbar.set)
-scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
-msg_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
-msg_list.pack()
-messages_frame.pack()
+chat_frame = QFrame()
+chat_frame.setWindowTitle("Chit-Chat v1.0.")
+msg_list = QListWidget(chat_frame)
+msg_list.setGeometry(10,10,1200,550)
 
 
+
+scroll = QScrollBar()
+msg_area = QTextEdit(chat_frame)
+msg_area.setGeometry(10,570,1200,100)
+msg_area.setVerticalScrollBar(scroll)
+
+
+
+send_button = QPushButton(chat_frame)
+send_button.setText("Send")
+send_button.setGeometry(1230,570, 100, 40)
+
+
+shuffle_button = QPushButton(chat_frame)
+shuffle_button.setText("Shuffle")
+shuffle_button.setGeometry(1230, 620, 100,40)
+
+
+def transition():
+    global connection_status
+    username = nickname_entry.text()
+    pswd = password_entry.text()
+    db = MySQLdb.connect(host="45.63.101.196", user="suleyman_yaman", passwd="19971234", db="suleyman_chitchat")
+    conn = db.cursor()
+    conn.execute("SELECT nickname, pssword FROM chatmembers WHERE nickname=%s AND pssword=%s ", (username, pswd))
+    if conn.fetchone():
+        try:
+            s.connect((HOST, PORT))
+            window.close()
+            connection_status = "ONLINE"
+            s.send(username.encode("utf-8"))
+            chat_frame.showMaximized()
+
+        except ConnectionRefusedError:
+            connection_error=QMessageBox()
+            connection_error.setWindowTitle("Network error")
+            connection_error.setInformativeText("The server is not connected.")
+            connection_error.setIcon(QMessageBox.Warning)
+            connection_error.exec()
+
+    else:
+        credential_error = QMessageBox()
+        credential_error.setWindowTitle("Credentials wrong")
+        credential_error.setInformativeText("Either username or password is wrong.")
+        credential_error.setIcon(QMessageBox.Critical)
+        credential_error.exec()
 
 
 def recv():
@@ -100,58 +147,77 @@ def recv():
         if connection_status == "ONLINE":
             data = s.recv(1024)
             if not data: sys.exit(0)
-            msg_list.insert(tkinter.END, data.decode())
-
+            msg_list.addItem(data.decode())
+            playsound("C:/Users/asus/Desktop/Random Chat/notif.mp3")
 
 
 def send(event=None):
-    message = auth_login() + entry_field.get("1.0", "end-1c")
-    s.send(message.encode('utf-8'))
-    entry_field.delete('1.0', tkinter.END)
-    return "break"
-
+    message = msg_area.toPlainText()
+    if connection_status == "ONLINE":
+        s.send(message.encode('utf-8'))
+        msg_area.clear()
 
 def shuffle(event=None):
     s.send("?pRG=gmxHD74cEm".encode("utf-8"))
 
 
 
-def on_closing(event=None):
-    if messagebox.askokcancel("Quit", "Do you want to quit RChat?"):
-        try:
-            s.send("4t7w!z%C".encode("utf-8"))
-        finally:
-            root.destroy()
+def closeEvent(self, event):
+    choice = QMessageBox.question(self, "Quit", "Do you want to quit Chit-Chat?", QMessageBox.Yes, QMessageBox.No)
+    if choice == QMessageBox.Yes:
+        s.send("4t7w!z%C".encode("utf-8"))
+        event.accept()
+
+    else:
+        event.ignore()
 
 
 
-entry_field = tkinter.Text(f2, height=5, width=150)
-entry_field.bind("<Return>", send)
-entry_field.pack(side=tkinter.LEFT)
+
+send_button.clicked.connect(send)
+shuffle_button.clicked.connect(shuffle)
+shuffle_button.setShortcut("Ctrl+S")
 
 
-send_button = tkinter.Button(f2, text="Send", command=send, height=2, width=20)
-send_button.pack()
+# Frame 1
+
+window=QFrame()
+window.setWindowTitle("Chit-Chat v1.0.")
 
 
-
-shuffle_button = tkinter.Button(f2, text="Shuffle", command=shuffle, height=2, width=20)
-shuffle_button.pack(side=tkinter.BOTTOM)
+fbox = QFormLayout()
 
 
+l1=QLabel("Nickname:")
+nickname_entry = QLineEdit(window)
+nickname_entry.returnPressed.connect(transition)
 
-root.protocol("WM_DELETE_WINDOW", on_closing)
+l2=QLabel("Password:")
+password_entry = QLineEdit(window)
+password_entry.setEchoMode(QLineEdit.Password)
+password_entry.returnPressed.connect(transition)
 
+
+login = QPushButton(window)
+login.setText("Login")
+login.clicked.connect(transition)
+login.setShortcut("Return")
+
+register_button=QPushButton("Don't have an account?")
+register_button.clicked.connect(open_reg)
+
+fbox.addRow(l1, nickname_entry)
+fbox.addRow(l2, password_entry)
+fbox.addRow(login)
+fbox.addRow(register_button)
+
+window.setLayout(fbox)
+window.show()
 
 t1=Thread(target=recv)
 t1.start()
 
+chat_frame.closeEvent = functools.partial (closeEvent, chat_frame)
 
 
-
-
-gantihal(f1)
-root.mainloop()
-
-
-
+sys.exit(app.exec())
