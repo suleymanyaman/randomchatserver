@@ -76,7 +76,7 @@ def handle_client(client):
         elif msg == "4t7w!z%C":
             client.close()
             try:
-                get_key(clients, target_client).send("Your partner has left the chat!".encode())
+                get_key(clients, target_client).send("Your partner has left the chat :(".encode())
                 status[target_client] = "AVAILABLE"
             finally:
                 del clients[client]
