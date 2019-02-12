@@ -1,10 +1,6 @@
 import socket
 from threading import Thread
 import random
-from faker import Faker
-
-
-#fake=Faker("en_US")
 
 
 
@@ -49,14 +45,14 @@ def handle_client(client):
             if client_id in list(match.keys())+list(match.values()):
                 try:
                     del match[client_id]
-                    get_key(clients, target_client).send("Your partner has left the chat :(".encode())
+                    get_key(clients, target_client).send("[FromServer]Your partner has left the chat :(".encode())
                     status[target_client]="AVAILABLE"
 
 
 
                 except KeyError:
                     del match[get_key(match, client_id)]
-                    get_key(clients, target_client).send("Your partner has left the chat :(".encode())
+                    get_key(clients, target_client).send("[FromServer]Your partner has left the chat :(".encode())
                     status[target_client] = "AVAILABLE"
 
             target_client = random.choice(list(clients.values()))
@@ -64,19 +60,19 @@ def handle_client(client):
                 match[client_id] = target_client
                 status[client_id] = "FULL"
                 status[target_client] = "FULL"
-                client.send("You have been connected to someone!".encode())
+                client.send("[FromServer]You have been connected to someone!".encode())
                 get_key(clients,target_client).send(
-                    "You have been connected to someone!".encode())
+                    "[FromServer]You have been connected to someone!".encode())
 
 
             else:
-                client.send("We couldn't find a match for you, try again".encode())
+                client.send("[FromServer]We couldn't find a match for you, try again".encode())
                 continue
 
         elif msg == "4t7w!z%C":
             client.close()
             try:
-                get_key(clients, target_client).send("Your partner has left the chat :(".encode())
+                get_key(clients, target_client).send("[FromServer]Your partner has left the chat :(".encode())
                 status[target_client] = "AVAILABLE"
             finally:
                 del clients[client]
