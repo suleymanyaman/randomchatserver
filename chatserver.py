@@ -22,7 +22,7 @@ def handle_client(client):
     #Make sure that every client has a distinct id
     global target_client
     while 1:
-        client_id = client.recv(1024).decode()
+        client_id = client.recv(1024).decode("utf-8")
         if client_id not in list(clients.values()):
             clients[client]=client_id
             print(client_id)
@@ -39,7 +39,7 @@ def handle_client(client):
 
 
     while 1:
-        msg = client.recv(1024).decode()
+        msg = client.recv(1024).decode("utf-8")
         print(msg)
         if msg == "?pRG=gmxHD74cEm":
             if client_id in list(match.keys())+list(match.values()):
@@ -91,7 +91,7 @@ def handle_client(client):
             
             to_client = get_key(clients, to)
             to_client.send((client_id+":"+msg).encode("utf-8"))
-            client.send(("Me"+":"+msg).encode("utf-8"))
+
 
 
 clients={}
