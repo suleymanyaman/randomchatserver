@@ -1,6 +1,7 @@
 import socket
 from threading import Thread
 import random
+import sys
 
 
 def get_key(dict, value):
@@ -40,6 +41,7 @@ def handle_client(client):
     while 1:
         msg = client.recv(1024).decode("utf-8")
         print(msg)
+
         if msg == "?pRG=gmxHD74cEm":
             if client_id in list(match.keys())+list(match.values()):
                 try:
@@ -79,6 +81,21 @@ def handle_client(client):
                 print(len(clients))
                 break
 
+        elif msg == "SHOW":
+            info = "Clients: %s" % list(clients.values())
+            if client_id == "administrator":
+                target = get_key(clients, client_id)
+                target.send(info.encode("utf-8"))
+
+
+        elif msg =="DELETE":
+            clients.clear()
+            status.clear()
+            match.clear()
+            target.send("The connection was reset successfully.".encode("utf-8"))
+            for member in clients:
+                member.send("You have been disconnected by the server.".encode("utf-8"))
+                member.close()
 
         else:
             frm = clients[client]
@@ -113,3 +130,4 @@ if __name__== "__main__":
     print("Waiting for connection.....")
     ACCEPT_THREAD = Thread(target=accept_incoming_connections)
     ACCEPT_THREAD.start()
+
