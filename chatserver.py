@@ -2,6 +2,7 @@ import socket
 from threading import Thread
 import random
 import sys
+import pendulum 
 
 
 def get_key(dict, value):
@@ -13,7 +14,7 @@ def accept_incoming_connections():
     while True:
         client, client_adress = SERVER.accept()
         client.send("Welcome to Chit-Chat ! {} people is online.".format(str(len(clients))).encode())
-        print("%s:%s has connected" % client_adress)
+        print("%s:%s has connected" % client_adress, pendulum.now('Turkey'))
         Thread(target=handle_client, args=(client,)).start()
 
 
