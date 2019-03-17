@@ -2,21 +2,18 @@ import socket
 from threading import Thread
 import random
 import sys
-import pendulum 
 
 
 def get_key(dict, value):
     return list(dict.keys())[list(dict.values()).index(value)]
 
 
-
 def accept_incoming_connections():
     while True:
         client, client_adress = SERVER.accept()
         client.send("Welcome to Chit-Chat ! {} people is online.".format(str(len(clients))).encode())
-        print("%s:%s has connected" % client_adress, pendulum.now('Turkey'))
+        print("%s:%s has connected" % client_adress)
         Thread(target=handle_client, args=(client,)).start()
-
 
 
 def handle_client(client):
@@ -26,7 +23,6 @@ def handle_client(client):
         client_id = client.recv(1024).decode("utf-8")
         if client_id not in list(clients.values()):
             clients[client]=client_id
-            print(client_id)
             status[client_id]="AVAILABLE"
             break
         else:
@@ -37,10 +33,9 @@ def handle_client(client):
 
 
     #Make sure that every client has a distinct peer
-
-
+    #image_binaries= b''
     while 1:
-        msg = client.recv(1024).decode("utf-8")
+        msg = client.recv(100000000).decode("utf-8")
         print(msg)
 
         if msg == "?pRG=gmxHD74cEm":
@@ -79,24 +74,7 @@ def handle_client(client):
             finally:
                 del clients[client]
                 del status[client_id]
-                print(len(clients))
                 break
-
-        elif msg == "SHOW":
-            info = "Clients: %s" % list(clients.values())
-            if client_id == "administrator":
-                target = get_key(clients, client_id)
-                target.send(info.encode("utf-8"))
-
-
-        elif msg =="DELETE":
-            clients.clear()
-            status.clear()
-            match.clear()
-            target.send("The connection was reset successfully.".encode("utf-8"))
-            for member in clients:
-                member.send("You have been disconnected by the server.".encode("utf-8"))
-                member.close()
 
         else:
             frm = clients[client]
@@ -105,7 +83,7 @@ def handle_client(client):
             except KeyError:
                 to = get_key(match, frm)
 
-            
+
             to_client = get_key(clients, to)
             to_client.send((client_id+":"+msg).encode("utf-8"))
 
